@@ -1,21 +1,22 @@
-/* write your server code here */
 const express = require("express");
-const users = require("./routes/users");
 const api = require("./routes/api");
+const users = require("./routes/users");
 const { ACCESS_TOKEN_SECRET } = require("./env");
 const jwt = require("jsonwebtoken");
+
 const app = express();
 
 app.use(express.json());
-app.use("/users", users);
+
 app.use("/api/v1", api);
+app.use("/users", users);
 
 app.options("/", (req, res) => {
   const Alloptions = [
     {
       method: "post",
       path: "/users/register",
-      description: "Register, Required: email, name, password",
+      description: "Register, Required: email, user, password",
       example: {
         body: { email: "user@email.com", name: "user", password: "password" },
       },
@@ -36,13 +37,13 @@ app.options("/", (req, res) => {
       method: "post",
       path: "/users/tokenValidate",
       description: "Access Token Validation, Required: valid access token",
-      example: { headers: { Authorization: "Bearer *Access Token*" } },
+      example: { headers: { authorization: "Bearer *Access Token*" } },
     },
     {
       method: "get",
       path: "/api/v1/information",
       description: "Access user's information, Required: valid access token",
-      example: { headers: { Authorization: "Bearer *Access Token*" } },
+      example: { headers: { authorization: "Bearer *Access Token*" } },
     },
     {
       method: "post",

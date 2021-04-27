@@ -1,5 +1,5 @@
 const { Router } = require("express");
-const { INFORMATION, USERS } = require("../helper");
+const { INFORMATION, USERS } = require("../helpers");
 const { validateToken } = require("../middlewares");
 
 const api = Router();

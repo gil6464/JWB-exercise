@@ -1,7 +1,7 @@
 const { hashSync, compare } = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { Router } = require("express");
-const { USERS, INFORMATION, REFRESHTOKENS } = require("../helper");
+const { USERS, INFORMATION, REFRESHTOKENS } = require("../helpers");
 const { REFRESH_TOKEN_SECRET, ACCESS_TOKEN_SECRET } = require("../env");
 const { validateToken } = require("../middlewares");
 
@@ -10,23 +10,32 @@ const users = Router();
 users.post("/register", (req, res) => {
   const { email, name, password } = req.body;
 
+  // Check if user exists
   const checkUser = USERS.find(user => email === user.email);
 
+  // If user exists, send appropriate response
   if (checkUser) {
     return res.status(409).send("user already exists");
   }
-  const hashPassword = hashSync(password, 10);
 
+  // If user does not exist, create it:
+  // Hash password
+  const hashedPassword = hashSync(password, 10);
+
+  // Adding user to 'DB'
   USERS.push({
     email,
     name,
-    password: hashPassword,
+    password: hashedPassword,
     isAdmin: false,
   });
+
+  // Adding information to 'DB'
   INFORMATION.push({
     email,
     info: `${name} info`,
   });
+
   res.status(201).send("Register Success");
 });
 
@@ -36,14 +45,16 @@ users.post("/login", async (req, res) => {
   const user = USERS.find(entry => entry.email === email);
 
   if (!user) {
-    return res.status(403).send("cannot find user");
+    return res.status(404).send("cannot find user");
   }
 
   try {
-    const isPassCorrect = await compare(password, user.password);
-    if (!isPassCorrect) {
+    const isPasswordCorrect = await compare(password, user.password);
+
+    if (!isPasswordCorrect) {
       return res.status(403).send("User or Password incorrect");
     }
+
     const dataInToken = {
       name: user.name,
       email: user.email,
@@ -76,7 +87,7 @@ users.post("/token", (req, res) => {
   const { token } = req.body;
 
   if (!token) {
-    res.status(401).send("Refresh Token Required");
+    return res.status(401).send("Refresh Token Required");
   }
 
   if (!REFRESHTOKENS.includes(token)) {
@@ -95,6 +106,7 @@ users.post("/token", (req, res) => {
         expiresIn: "10s",
       }
     );
+
     return res.json({ accessToken });
   });
 });
